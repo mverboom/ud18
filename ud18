@@ -34,6 +34,7 @@ def main():
    
    try:
       while 1:
+         # big assumption on message format, should really look for the start bytes.
          a = ser.read(36)
          if (a[0] == 0xff and a[1] == 0x55):
             if (a[2] == 0x01):
