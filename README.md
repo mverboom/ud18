@@ -3,6 +3,8 @@
 A simple python3 script to dump the measured data of the Atorch ud18 USB meter
 to the screen or optionally to a log file for further processing.
 
+Thanks to Marco Sillano for all the protocol information (https://github.com/msillano)!
+
 ## Installation
 
 Mainly required is the python3 serial library
