@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+#
+# Atorch UD18 USB power meter data logger
+#
+# by Mark Verboom
+#
+# Thanks to Marco Sillano for all the protocol information
+# (https://github.com/msillano)
+
+import serial
+import sys
+import argparse
+import time
+
+BAUDRATE=115200
+
+def main():
+   parser = argparse.ArgumentParser(description="ud18")
+   parser.add_argument('-d', '--device', dest='device', default="",
+                      required=True, help="Serial device")
+   parser.add_argument('-f', '--file', dest='file', default="",
+                      required=False, help="Write results to file")
+   args = parser.parse_args()
+
+   try:
+      ser = serial.Serial(port=args.device, baudrate=BAUDRATE)
+   except:
+      print(f'Unable to open serial port {args.device}')
+      sys.exit(0)
+
+   if (args.file):
+      f = open(args.file, "a")
+      f.write('time(s), voltage(V), current(A), power(W), capacity(mAh), energy(Wh), D-, D+, runtime\n')
+   
+   try:
+      while 1:
+         a = ser.read(36)
+         if (a[0] == 0xff and a[1] == 0x55):
+            if (a[2] == 0x01):
+               volt=int.from_bytes(a[4:7], byteorder='big')/100
+               amp=int.from_bytes(a[7:10], byteorder='big')/100
+               watt=volt*amp
+               mah=int.from_bytes(a[10:13], byteorder='big')
+               wh=int.from_bytes(a[13:17], byteorder='big')/100
+               dmin=int.from_bytes(a[17:19], byteorder='big')/100
+               dplus=int.from_bytes(a[19:21], byteorder='big')/100
+               hr=int(a[24])
+               min=int(a[25])
+               sec=int(a[26])
+               print(f'Voltage : {volt}V')
+               print(f'Current : {amp}A')
+               print(f'Power   : {watt}W')
+               print(f'Capacity: {mah}mAh')
+               print(f'Energy  : {wh}Wh')
+               print(f'USB d-  : {dmin}')
+               print(f'USB d+  : {dplus}')
+               print(f'Time    : {hr}:{min}:{sec}')
+               print()
+               try:
+                  f.write(f'{time.time()}, {volt}, {amp}, {watt}, {mah}, {wh}, {dmin}, {dplus}, {hr}:{min}:{sec}\n')
+               except:
+                  pass
+   except KeyboardInterrupt:
+      print("Ending")
+
+   try:
+      f.close()
+   except:
+      pass
+
+   ser.close()
+
+main()
