@@ -33,8 +33,17 @@ def main():
       f.write('time(s), voltage(V), current(A), power(W), capacity(mAh), energy(Wh), D-, D+, runtime\n')
    
    try:
+      # find 0xff 0x55 start sequence
+      found=False
+      while not found:
+         a = ser.read(1)
+         if (a[0] == 0xff):
+            a = ser.read(1)
+            if (a[0] == 0x55):
+               a = ser.read(34) # discard rest of data
+               found=True
+
       while 1:
-         # big assumption on message format, should really look for the start bytes.
          a = ser.read(36)
          if (a[0] == 0xff and a[1] == 0x55):
             if (a[2] == 0x01):
